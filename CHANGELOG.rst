@@ -1,6 +1,11 @@
 OasisLMF Changelog
 ==================
 
+`1.2.9`_
+--------
+* Set Ktools v3.0.7
+
+
 `1.2.8`_
 --------
 * Hotfix for Ktools, version is now 3.0.5
@@ -190,6 +195,7 @@ in the exposure manager
 
 * Add console logging
 
+.. _`1.2.9`:  https://github.com/OasisLMF/OasisLMF/compare/1.2.8...1.2.9
 .. _`1.2.8`:  https://github.com/OasisLMF/OasisLMF/compare/1.2.7...1.2.8
 .. _`1.2.7`:  https://github.com/OasisLMF/OasisLMF/compare/1.2.6...1.2.7
 .. _`1.2.6`:  https://github.com/OasisLMF/OasisLMF/compare/1.2.5...1.2.6

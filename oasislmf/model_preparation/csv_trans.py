@@ -108,7 +108,4 @@ class Translator(object):
                 df_out.to_csv(self.fpath_output, mode='a', header=False,index=False)
 
             c=c+1
-            self.logger.info("done chunk {}, {} rows".format(c,c*self.chunk_size)
-
-
-                                                                                                                                                                       52,9          87%
+            self.logger.info("done chunk {}, {} rows".format(c,c*self.chunk_size))

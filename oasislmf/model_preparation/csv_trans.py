@@ -65,7 +65,7 @@ class Translator(object):
 
         c=0
 
-        for df_in in pd.read_csv(self.fpath_input,chunksize=self.chunk_size,encoding='utf-8'):
+        for df_in in pd.read_csv(self.fpath_input,chunksize=self.chunk_size,encoding='utf-8',dtype='str'):
             headers = df_in.columns
             df_in = df_in.fillna("").values.astype("unicode").tolist()
 

@@ -132,9 +132,10 @@ class InstallKtoolsMixin(object):
             # component executable
             #if split[-1] == split[-2]:
             #    component_path = os.path.join(self.get_bin_dir(), split[-1])
+            component_path = p
             #    shutil.copy(p, component_path)
             shutil.copy(p, dest)
-            #    yield component_path
+            yield component_path
 
     def install_ktools(self):
         with temp_dir() as d:

@@ -120,7 +120,7 @@ class InstallKtoolsMixin(object):
             os.makedirs(self.get_bin_dir())
         
         dest = self.get_bin_dir()
-
+        print('Dest: {}'.format(dest))
         #for p in glob.glob(os.path.join(build_dir, 'src', '*', '*')):
         for p in glob.glob(build_dir):
             #split = p.split(os.path.sep)

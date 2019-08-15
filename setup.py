@@ -124,7 +124,7 @@ class InstallKtoolsMixin(object):
         #for p in glob.glob(os.path.join(build_dir, 'src', '*', '*')):
         for p in glob.glob(build_dir):
             #split = p.split(os.path.sep)
-
+            print('p: {}'.format(p))
             # if the file name is the same as the directory we have found a
             # component executable
             #if split[-1] == split[-2]:

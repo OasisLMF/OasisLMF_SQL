@@ -104,7 +104,8 @@ class InstallKtoolsMixin(object):
 
     def build_ktools(self, extract_location):
         self.announce('Building ktools', INFO)
-        build_dir = os.path.join(extract_location, 'ktools-{}'.format(KTOOLS_VERSION))
+        #build_dir = os.path.join(extract_location, 'ktools-{}'.format(KTOOLS_VERSION))
+        build_dir = extract_location
 
         #exit_code = os.system('cd {build_dir} && ./autogen.sh && ./configure && make && make check'.format(build_dir=build_dir))
         #if(exit_code is not 0):

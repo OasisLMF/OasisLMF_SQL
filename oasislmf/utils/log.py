@@ -35,7 +35,7 @@ def set_rotating_logger(
     log_file_path=inspect.stack()[1][1],
     log_level=logging.INFO,
     max_file_size=10**7,
-    max_backups=5
+    max_backups=25
 ):
     _log_fp = log_file_path
     if not os.path.isabs(_log_fp):

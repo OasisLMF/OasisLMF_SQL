@@ -6,23 +6,23 @@ __all__ = [
 
 import json
 import logging
-import multiprocessing
+#import multiprocessing
 import os
 
 import pandas as pd
 
 from lxml import etree
 
-from oasislmf.utils.concurrency import (
-    multiprocess,
-    multithread,
-    Task,
-)
+#from oasislmf.utils.concurrency import (
+#    multiprocess,
+#    multithread,
+#    Task,
+#)
 from oasislmf.utils.exceptions import OasisException
 
 
 class Translator(object):
-    def __init__(self, input_path, output_path, xslt_path, xsd_path=None, append_row_nums=False, chunk_size=5000, logger=None):
+    def __init__(self, input_path, output_path, xslt_path, xsd_path=None, append_row_nums=False, chunk_size=100000, logger=None):
         """
         Transforms exposures/locations in CSV format
         by converting a source file to XML and applying an XSLT transform
@@ -54,6 +54,7 @@ class Translator(object):
         self.xslt = etree.parse(xslt_path)
         self.fpath_input = input_path
         self.fpath_output = output_path
+        self.chunk_size = chunk_size
 
         self.row_nums = append_row_nums
         self.row_limit = chunk_size
@@ -61,139 +62,50 @@ class Translator(object):
         self.row_header_out = None
 
     def __call__(self):
-        self.test_run()
-        csv_reader = pd.read_csv(self.fpath_input, iterator=True, dtype=object, encoding='utf-8')
 
-        task_list = []
-        for chunk_id, (data, first_row, last_row) in enumerate(self.next_file_slice(csv_reader)):
-            task_list.append(Task(self.process_chunk, args=(data,first_row,last_row, chunk_id), key=chunk_id))
+        c=0
 
-        results = {}
-        num_ps = multiprocessing.cpu_count()
-        for key, data in multithread(task_list, pool_size=num_ps):
-            results[key] = data
+        for df_in in pd.read_csv(self.fpath_input,chunksize=self.chunk_size,encoding='utf-8',dtype='str'):
+            headers = df_in.columns
+            df_in = df_in.fillna("").values.astype("unicode").tolist()
 
-        ## write output to disk
-        for i in range(0, len(results)):
-            if (i == 0):
-                self.write_file_header(results[i].columns.tolist())
-            results[i].to_csv(
-                self.fpath_output,
-                mode='a',
-                encoding='utf-8',
-                header=False,
-                index=False,
-            )
+            root = etree.Element('root')
 
-    def test_run(self, row_sample_size=5):
-        """
-            Test transformation run using the first 5 rows of input,
-            Guard for invalid input files before starting multiprocessing
-        """
-        sample_reader = pd.read_csv(self.fpath_input, 
-                                    iterator=True, 
-                                    dtype=object, 
-                                    encoding='utf-8', 
-                                    nrows=row_sample_size)
+            for row in df_in:
+                rec = etree.SubElement(root, 'rec')
+                for i in range(0, len(row)):
+                    if(row[i] not in [None, "", 'NaN']):
+                        rec.set(headers[i], row[i])
 
-        df_generator = self.next_file_slice(sample_reader)
-        (data, first_row, last_row) = next(df_generator)
-        sample_out_df = self.process_chunk(data, first_row, last_row, 1) 
-        if sample_out_df.empty:
-            raise OasisException('Input Test Failed: Output DataFrame is empty')
+            #xslt_o = etree.parse(self.xslt)
 
-    def process_chunk(self, data, first_row_number, last_row_number, seq_id):
-        xml_input_slice = self.csv_to_xml(
-            self.row_header_in,
-            data
-        )
-        self.print_xml(xml_input_slice)
+            lxml_transform = etree.XSLT(self.xslt)
 
-        # Transform
-        xml_output = self.xml_transform(xml_input_slice, self.xslt)
+            dest = lxml_transform(root)
+            root_dest = dest.getroot()
 
-        # Validate Output
-        if self.xsd:
-            self.logger.debug(self.xml_validate(xml_output, self.xsd))
+            row_header_out = root_dest[0].keys()
 
-        # Convert transform XML back to CSV
-        return self.xml_to_csv(
-                 xml_output,        # XML etree
-                 first_row_number,  # First Row in this slice
-                 last_row_number    # Last Row in this slice
-        )
+            rows = []
 
+            for rec in root_dest:
+                rows.append(dict(rec.attrib))
 
-    def csv_to_xml(self, csv_header, csv_data):
-        root = etree.Element('root')
-        for row in csv_data:
-            rec = etree.SubElement(root, 'rec')
-            for i in range(0, len(row)):
-                if(row[i] not in [None, "", 'NaN']):
-                    rec.set(csv_header[i], row[i])
-        return root
+            df_out = pd.DataFrame(rows, columns=row_header_out)
 
-    def xml_to_csv(self, xml_elementTree, row_first, row_last):
-        root = xml_elementTree.getroot()
-        # Set output col headers
-        if not (self.row_header_out):
-            self.row_header_out = root[0].keys()
+            if self.row_nums:
+                df_out['ROW_ID']=df_out.index+1+(c*self.chunk_size)
+                new_row_header_out = ['ROW_ID']
+                for header_item in row_header_out:
+                    new_row_header_out.append(header_item)
+                row_header_out = new_row_header_out
+                df_out=df_out[row_header_out]
+                #self.logger.info(row_header_out)
 
-        # create Dataframe from xml and append each row
-        rows = []
-        for rec in root:
-            rows.append(dict(rec.attrib))
+            if not os.path.isfile(self.fpath_output):
+                df_out.to_csv(self.fpath_output, header=row_header_out,index=False)
+            else:
+                df_out.to_csv(self.fpath_output, mode='a', header=False,index=False)
 
-        df_out = pd.DataFrame(rows, columns=self.row_header_out)
-
-        # Add column for row_nums if set
-        if self.row_nums:
-            start = row_first + 1
-            end = start + len(df_out)
-            df_out.insert(0, 'ROW_ID', pd.Series(range(start,end)))
-
-        return df_out
-
-    def xml_validate(self, xml_etree, xsd_etree):
-        xmlSchema = etree.XMLSchema(xsd_etree)
-        self.print_xml(xml_etree)
-        self.print_xml(xsd_etree)
-        if (xmlSchema.validate(xml_etree)):
-            return True
-        else:
-            if self.logger.isEnabledFor(logging.DEBUG):
-                self.logger.error('Input failed to Validate')
-                log = xmlSchema.error_log
-                self.logger.error(log.last_error)
-            return False
-
-    def xml_transform(self, xml_doc, xslt):
-        lxml_transform = etree.XSLT(xslt)
-        return lxml_transform(xml_doc)
-
-    def next_file_slice(self, file_reader):
-        while True:
-            try:
-                df_slice = file_reader.get_chunk(self.row_limit)
-                if(not self.row_header_in):
-                    self.row_header_in = df_slice.columns.values.tolist()
-                yield (
-                    df_slice.fillna("").values.astype("unicode").tolist(),
-                    df_slice.first_valid_index(),
-                    df_slice.last_valid_index()
-                )
-            except StopIteration:
-                self.logger.debug('End of input file')
-                break
-
-    def write_file_header(self, row_names):
-        pd.DataFrame(columns=row_names).to_csv(
-            self.fpath_output,
-            encoding='utf-8',
-            header=True,
-            index=False,
-        )
-
-    def print_xml(self, etree_obj):
-        self.logger.debug('___________________________________________')
-        self.logger.debug(etree.tostring(etree_obj, pretty_print=True))
+            c=c+1
+            self.logger.info("done chunk {}, {} rows".format(c,c*self.chunk_size))

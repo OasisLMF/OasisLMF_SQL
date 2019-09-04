@@ -24,7 +24,7 @@ except ImportError:
     from urllib2 import urlopen, URLError
 
 
-KTOOLS_VERSION = '3.0.7'
+KTOOLS_VERSION = '3.1.0'
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -67,7 +67,8 @@ class InstallKtoolsMixin(object):
         request = None
         for i in range(attempts):
             try:
-                request = urlopen('https://github.com/OasisLMF/ktools/archive/v{}.tar.gz'.format(KTOOLS_VERSION), timeout=timeout * 1000)
+                #request = urlopen('https://github.com/OasisLMF/ktools/archive/v{}.tar.gz'.format(KTOOLS_VERSION), timeout=timeout * 1000)
+                request = urlopen('https://github.com/OasisLMF/ktools/releases/download/v{}/Linux_x86_64.tar.gz'.format(KTOOLS_VERSION), timeout=timeout * 1000)
                 break
             except URLError as e:
                 self.announce('Failed to get ktools tar (attempt {})'.format(i + 1), WARN)
@@ -103,13 +104,14 @@ class InstallKtoolsMixin(object):
 
     def build_ktools(self, extract_location):
         self.announce('Building ktools', INFO)
-        build_dir = os.path.join(extract_location, 'ktools-{}'.format(KTOOLS_VERSION))
+        #build_dir = os.path.join(extract_location, 'ktools-{}'.format(KTOOLS_VERSION))
+        build_dir = extract_location
 
-        exit_code = os.system('cd {build_dir} && ./autogen.sh && ./configure && make && make check'.format(build_dir=build_dir))
-        if(exit_code is not 0):
-            self.announce('Ktools build failed.\n', WARN)
-            if (not self.ktools_inpath()):
-                self.announce('Exisiting Ktools install not found.\n', WARN)
+        #exit_code = os.system('cd {build_dir} && ./autogen.sh && ./configure && make && make check'.format(build_dir=build_dir))
+        #if(exit_code is not 0):
+        #    self.announce('Ktools build failed.\n', WARN)
+        #    if (not self.ktools_inpath()):
+        #        self.announce('Exisiting Ktools install not found.\n', WARN)
         return build_dir
 
     def add_ktools_to_path(self, build_dir):
@@ -117,16 +119,23 @@ class InstallKtoolsMixin(object):
 
         if not os.path.exists(self.get_bin_dir()):
             os.makedirs(self.get_bin_dir())
-
-        for p in glob.glob(os.path.join(build_dir, 'src', '*', '*')):
-            split = p.split(os.path.sep)
-
+        
+        source = build_dir
+        dest = self.get_bin_dir()
+        print('Dest: {}, Source: {}'.format(dest,source))
+        #for p in glob.glob(os.path.join(build_dir, 'src', '*', '*')):
+        print(glob.glob(os.path.join(build_dir,'*')))
+        for p in glob.glob(os.path.join(build_dir,'*')):
+            #split = p.split(os.path.sep)
+            print('p: {}'.format(p))
             # if the file name is the same as the directory we have found a
             # component executable
-            if split[-1] == split[-2]:
-                component_path = os.path.join(self.get_bin_dir(), split[-1])
-                shutil.copy(p, component_path)
-                yield component_path
+            #if split[-1] == split[-2]:
+            #    component_path = os.path.join(self.get_bin_dir(), split[-1])
+            component_path = p
+            #    shutil.copy(p, component_path)
+            shutil.copy(p, dest)
+            yield component_path
 
     def install_ktools(self):
         with temp_dir() as d:

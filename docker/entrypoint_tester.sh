@@ -20,17 +20,17 @@ BUILD_OUTPUT_DIR='/tmp/output/'
     TAR_PKG=$(find ./dist/ -name "oasislmf-${VER_PKG}.tar.gz")
     pip install --verbose $TAR_PKG | tee $LOG_BUILD
 
-    set +exu
-    KTOOLS_BUILD_FAILED=$(cat $LOG_BUILD | grep -ci 'Ktools build failed')
-    ALL_KTESTS_PASS=$(cat $LOG_BUILD | grep -ci 'All tests passed.')
-    set -exu
+    #set +exu
+    #KTOOLS_BUILD_FAILED=$(cat $LOG_BUILD | grep -ci 'Ktools build failed')
+    #ALL_KTESTS_PASS=$(cat $LOG_BUILD | grep -ci 'All tests passed.')
+    #set -exu
 
-    if [ $KTOOLS_BUILD_FAILED -ne 0 ] || [ $ALL_KTESTS_PASS -ne 1 ]; then
-        echo "Error Detected in Ktools install"
-        exit 1
-    else
-        echo "Ktools installed successfully"
-    fi
+    #if [ $KTOOLS_BUILD_FAILED -ne 0 ] || [ $ALL_KTESTS_PASS -ne 1 ]; then
+    #    echo "Error Detected in Ktools install"
+    #    exit 1
+    #else
+    #    echo "Ktools installed successfully"
+    #fi
 
 # Unit testing
     find /home/ -name __pycache__ | xargs -r rm -rfv

@@ -1,1 +1,1 @@
-__version__ = '1.2.12-SQL'
+__version__ = '1.2.13-SQL'

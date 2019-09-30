@@ -241,7 +241,7 @@ def do_kats(runtype, analysis_settings, max_process_id, filename, process_counte
 
 
 def do_summarycalcs(
-    runtype, analysis_settings, process_id, filename, fifo_dir='', num_reinsurance_iterations=0):
+    runtype, analysis_settings, process_id, filename, fifo_dir='',  stderr_redirect='', num_reinsurance_iterations=0):
 
     summaries = analysis_settings.get('{}_summaries'.format(runtype))
     if not summaries:
@@ -262,7 +262,12 @@ def do_summarycalcs(
             summary_set = summary['id']
             cmd = '{0} -{1} {4}fifo/{2}_S{1}_summary_P{3}'.format(cmd, summary_set, runtype, process_id, fifo_dir)
 
-    cmd = '{0} < {1}fifo/{2}_P{3} &'.format(cmd, fifo_dir, runtype, process_id)
+    cmd = '{0} < {1}fifo/{2}_P{3} {4} &'.format(
+        cmd,
+        fifo_dir,
+        runtype,
+        process_id,
+        stderr_redirect)
     print_command(filename, cmd)
 
 
@@ -347,7 +352,7 @@ def do_any(runtype, analysis_settings, process_id, filename, process_counter, fi
         print_command(filename, '')
 
 
-def do_ri(analysis_settings, max_process_id, filename, process_counter, num_reinsurance_iterations, fifo_dir=''):
+def do_ri(analysis_settings, max_process_id, filename, process_counter, num_reinsurance_iterations, fifo_dir='', stderr_redirect=''):
     for process_id in range(1, max_process_id + 1):
         do_any(RUNTYPE_REINSURANCE_LOSS, analysis_settings, process_id, filename, process_counter, fifo_dir)
 
@@ -356,10 +361,10 @@ def do_ri(analysis_settings, max_process_id, filename, process_counter, num_rein
 
     for process_id in range(1, max_process_id + 1):
         do_summarycalcs(
-            RUNTYPE_REINSURANCE_LOSS, analysis_settings, process_id, filename, fifo_dir, num_reinsurance_iterations)
+            RUNTYPE_REINSURANCE_LOSS, analysis_settings, process_id, filename, fifo_dir, stderr_redirect, num_reinsurance_iterations)
 
 
-def do_il(analysis_settings, max_process_id, filename, process_counter, fifo_dir=''):
+def do_il(analysis_settings, max_process_id, filename, process_counter, fifo_dir='', stderr_redirect=''):
     for process_id in range(1, max_process_id + 1):
         do_any(RUNTYPE_INSURED_LOSS, analysis_settings, process_id, filename, process_counter, fifo_dir)
 
@@ -367,10 +372,10 @@ def do_il(analysis_settings, max_process_id, filename, process_counter, fifo_dir
         do_tees(RUNTYPE_INSURED_LOSS, analysis_settings, process_id, filename, process_counter, fifo_dir)
 
     for process_id in range(1, max_process_id + 1):
-        do_summarycalcs(RUNTYPE_INSURED_LOSS, analysis_settings, process_id, filename, fifo_dir)
+        do_summarycalcs(RUNTYPE_INSURED_LOSS, analysis_settings, process_id, filename, fifo_dir, stderr_redirect)
 
 
-def do_gul(analysis_settings, max_process_id, filename, process_counter, fifo_dir=''):
+def do_gul(analysis_settings, max_process_id, filename, process_counter, fifo_dir='', stderr_redirect=''):
     for process_id in range(1, max_process_id + 1):
         do_any(RUNTYPE_GROUNDUP_LOSS, analysis_settings, process_id, filename, process_counter, fifo_dir)
 
@@ -378,7 +383,7 @@ def do_gul(analysis_settings, max_process_id, filename, process_counter, fifo_di
         do_tees(RUNTYPE_GROUNDUP_LOSS, analysis_settings, process_id, filename, process_counter, fifo_dir)
 
     for process_id in range(1, max_process_id + 1):
-        do_summarycalcs(RUNTYPE_GROUNDUP_LOSS, analysis_settings, process_id, filename, fifo_dir)
+        do_summarycalcs(RUNTYPE_GROUNDUP_LOSS, analysis_settings, process_id, filename, fifo_dir, stderr_redirect)
 
 
 def do_il_make_fifo(analysis_settings, max_process_id, filename, fifo_dir=''):
@@ -536,6 +541,10 @@ def genbash(
     ri_output = False
     fifo_queue_dir = ""
 
+    stderr_abort = True
+    stderr_log = 'stderror.err'
+    strerr_redirect = ''
+
     # Alloc Rule input guard - default to '2' if invalid value given
     if alloc_rule not in [ALLOCATE_TO_ITEMS_BY_PREVIOUS_LEVEL_ALLOC_ID,
                           ALLOCATE_TO_ITEMS_BY_GUL_ALLOC_ID,
@@ -568,6 +577,14 @@ def genbash(
     print_command(filename, 'set -o pipefail')
     print_command(filename, '')
 
+    if stderr_abort:
+        print_command(filename, 'rm -f {0}'.format(stderr_log))
+        print_command(filename, 'rm -f killout.txt')
+        print_command(filename, 'touch {0}'.format(stderr_log))
+        print_command(filename, 'killemall.sh & pid0=$!')
+        print_command(filename, '')
+        strerr_redirect = '2>> {0}'.format(stderr_log)
+
     print_command(filename, 'rm -R -f output/*')
     if not fifo_tmp_dir:
         print_command(filename, 'rm -R -f fifo/*')
@@ -599,13 +616,13 @@ def genbash(
         print_command(filename, '')
         print_command(filename, '# --- Do reinsurance loss computes ---')
         print_command(filename, '')
-        do_ri(analysis_settings, max_process_id, filename, process_counter, num_reinsurance_iterations, fifo_queue_dir)
+        do_ri(analysis_settings, max_process_id, filename, process_counter, num_reinsurance_iterations, fifo_queue_dir, strerr_redirect)
 
     if il_output:
         print_command(filename, '')
         print_command(filename, '# --- Do insured loss computes ---')
         print_command(filename, '')
-        do_il(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir)
+        do_il(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir, strerr_redirect)
 
     if mem_limit:
         print_command(filename, '')
@@ -617,7 +634,7 @@ def genbash(
         print_command(filename, '')
         print_command(filename, '# --- Do ground up loss computes ---')
         print_command(filename, '')
-        do_gul(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir)
+        do_gul(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir, strerr_redirect)
 
     print_command(filename, '')
 
@@ -761,6 +778,10 @@ def genbash(
     if il_output:
         do_il_remove_fifo(analysis_settings, max_process_id, filename, fifo_queue_dir)
         remove_workfolders(RUNTYPE_INSURED_LOSS, analysis_settings, filename)
+
+    if stderr_abort:
+        print_command(filename, '# Stopping stderr listner')
+        print_command(filename, 'kill -9 $pid0')
 
     # If fifo dir is in /tmp/*/ then clean up
     if re.search(r"((/tmp/)[A-Za-z0-9_-]+(/))", fifo_queue_dir) and fifo_tmp_dir:

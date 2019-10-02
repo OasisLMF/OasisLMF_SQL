@@ -535,7 +535,7 @@ def genbash(
     gul_output = False
     il_output = False
     ri_output = False
-    stderr_abort = True
+    stderr_abort = False 
     fifo_queue_dir = ""
 
     # Alloc Rule input guard - default to '2' if invalid value given
@@ -608,13 +608,13 @@ def genbash(
         print_command(filename, '')
         print_command(filename, '# --- Do reinsurance loss computes ---')
         print_command(filename, '')
-        do_ri(analysis_settings, max_process_id, filename, process_counter, num_reinsurance_iterations, fifo_queue_dir, strerr_redirect)
+        do_ri(analysis_settings, max_process_id, filename, process_counter, num_reinsurance_iterations, fifo_queue_dir, stderr_abort)
 
     if il_output:
         print_command(filename, '')
         print_command(filename, '# --- Do insured loss computes ---')
         print_command(filename, '')
-        do_il(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir, strerr_redirect)
+        do_il(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir, stderr_abort)
 
     if mem_limit:
         print_command(filename, '')
@@ -626,7 +626,7 @@ def genbash(
         print_command(filename, '')
         print_command(filename, '# --- Do ground up loss computes ---')
         print_command(filename, '')
-        do_gul(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir, strerr_redirect)
+        do_gul(analysis_settings, max_process_id, filename, process_counter, fifo_queue_dir, stderr_abort)
 
     print_command(filename, '')
 
@@ -670,7 +670,7 @@ def genbash(
             }
             getmodel_args.update(custom_args)
             getmodel_cmd = _get_getmodel_cmd(**getmodel_args)
-            main_cmd = 'eve {0} {1} | {2} | fmcalc -a {3} > {4}fifo/il_P{0}  '.format(
+            main_cmd = 'eve {0} {1} | {2} | fmcalc -a {3} > {4}fifo/il_P{0} '.format(
                 process_id, max_process_id, getmodel_cmd,
                 alloc_rule,
                 fifo_queue_dir)
@@ -692,7 +692,7 @@ def genbash(
                 getmodel_args.update(custom_args)
                 getmodel_cmd = _get_getmodel_cmd(**getmodel_args)
 
-                main_cmd = 'eve {0} {1} | {2} > {3}fifo/gul_P{0}  &'.format( process_id, max_process_id, getmodel_cmd, fifo_queue_dir)
+                main_cmd = 'eve {0} {1} | {2} > {3}fifo/gul_P{0} '.format( process_id, max_process_id, getmodel_cmd, fifo_queue_dir)
                 main_cmd = '( {0} ) 2>> stderror.err &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
                 print_command(filename, main_cmd)
 
@@ -708,7 +708,7 @@ def genbash(
                 }
                 getmodel_args.update(custom_args)
                 getmodel_cmd = _get_getmodel_cmd(**getmodel_args)
-                main_cmd = "eve {0} {1} | {2} | fmcalc -a {3} > {4}fifo/il_P{0}  ".format(
+                main_cmd = "eve {0} {1} | {2} | fmcalc -a {3} > {4}fifo/il_P{0} ".format(
                         process_id, max_process_id, getmodel_cmd,
                         alloc_rule,
                         fifo_queue_dir)

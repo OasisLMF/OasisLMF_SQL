@@ -6,19 +6,29 @@ STATUS_LINES=15
 POLL_RATE=2
 
 run_ktools_kill(){
-    printf "\\n*** CPU LOAD *****************************" >> $LOG_FILE
-    ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu | head -n $STATUS_LINES >> $LOG_FILE
-    printf "\\n*** MEM LOAD *****************************"  >> $LOG_FILE
-    ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head -n $STATUS_LINES >> $LOG_FILE
-
-    echo "**************** output on STDERR killing run ***************" 
-    echo "$(date +"%T"): about to kill " >> $LOG_FILE
-    sleep 2
-    pkill getmodel -9
-    pkill gulcalc -9
-    pkill fmcalc -9 
-    echo "$(date +"%T"): kill done" >> $LOG_FILE
-    exit 1
+     FMCALC=`ps -C fmcalc -o pmem | grep -v MEM | sort -n -r | head -1`
+     GULCALC=`ps -C gulcalc -o pmem | grep -v MEM | sort -n -r | head -1`
+     GETMODEL=`ps -C getmodel -o pmem | grep -v MEM | sort -n -r | head -1`
+     echo "TOTALS:  $FMCALC $GULCALC $GETMODEL" > killout.txt
+     free -h > zzfree
+     ps -aux | grep fmcalc > zzfmcalc
+     ps -aux | grep gulcalc > zzgulcalc
+     echo "**************** DOING KILL ***************"
+     echo "$(date +"%T"): killing eve" >> killout.txt
+     pkill -9 eve
+     echo "$(date +"%T"): killing getmodel" >> killout.txt
+     pkill -9 getmodel
+     echo "$(date +"%T"): killing gulcalc" >> killout.txt
+     pkill -9 gulcalc
+     echo "$(date +"%T"): killing fmcalc" >> killout.txt
+     pkill -9 fmcalc
+     echo "$(date +"%T"): killing summarycalc" >> killout.txt
+     pkill -9 summarycalc
+     echo "$(date +"T"): kill done" >> killout.txt
+     sleep 2
+     ps -aux | grep fmcalc > zzfmcalc1
+     ps -aux | grep gulcalc > zzgulcalc1
+     exit 1
 }
 
 if hash inotifywait 2>/dev/null; then

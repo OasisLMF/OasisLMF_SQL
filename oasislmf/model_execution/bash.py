@@ -535,7 +535,7 @@ def genbash(
     gul_output = False
     il_output = False
     ri_output = False
-    stderr_abort = False 
+    stderr_abort = True
     fifo_queue_dir = ""
 
     # Alloc Rule input guard - default to '2' if invalid value given

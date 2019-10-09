@@ -263,7 +263,7 @@ def do_summarycalcs(
             cmd = '{0} -{1} {4}fifo/{2}_S{1}_summary_P{3}'.format(cmd, summary_set, runtype, process_id, fifo_dir)
 
     cmd = '{0} < {1}fifo/{2}_P{3}'.format(cmd, fifo_dir, runtype, process_id)
-    cmd = '( {0} ) 2>> stderror.err  &'.format(cmd) if stderr_abort else '{0} &'.format(cmd)      # Wrap in subshell and pipe stderr to file
+    cmd = '( {0} ) 2>> log/stderror.err  &'.format(cmd) if stderr_abort else '{0} &'.format(cmd)      # Wrap in subshell and pipe stderr to file
     print_command(filename, cmd)
 
 
@@ -571,10 +571,20 @@ def genbash(
     print_command(filename, '')
 
     if stderr_abort:
-        print_command(filename, 'rm -f stderror.err')
-        print_command(filename, 'rm -f killout.txt')
-        print_command(filename, 'touch stderror.err')
-        print_command(filename, 'killemall.sh & pid0=$!')
+        print_command(filename, 'SCRIPT=$(readlink -f "$0") && cd $(dirname "$SCRIPT")')
+        print_command(filename, '')
+        print_command(filename, 'error_handler(){')
+        print_command(filename, "    echo 'Run Error - terminating, see the log dir for details'")
+        print_command(filename, '    proc_group_id=$(ps -p $$ -o pgid --no-headers)')
+        print_command(filename, '    pgrep -a --pgroup $proc_group_id >> log/killout.txt')
+        print_command(filename, '    pkill -9 --pgroup $proc_group_id')
+        print_command(filename, '}')
+        print_command(filename, 'trap error_handler QUIT HUP INT KILL TERM ERR')
+        print_command(filename, '')
+        print_command(filename, 'mkdir -p log')
+        print_command(filename, 'rm -R -f log/*')
+        print_command(filename, 'touch log/stderror.err')
+        print_command(filename, 'ktools_monitor $$ & pid0=$!')
         print_command(filename, '')
 
     print_command(filename, 'rm -R -f output/*')
@@ -655,7 +665,7 @@ def genbash(
                     main_cmd, os.sep, i, ALLOCATE_TO_ITEMS_BY_PREVIOUS_LEVEL_ALLOC_ID)
 
             main_cmd = "{0} > {1}fifo/ri_P{2}".format(main_cmd, fifo_queue_dir, process_id)
-            main_cmd = '( {0} ) 2>> stderror.err  &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
+            main_cmd = '( {0} ) 2>> log/stderror.err  &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
             print_command(filename, main_cmd)
 
         elif gul_output and il_output:
@@ -675,7 +685,7 @@ def genbash(
                 alloc_rule,
                 fifo_queue_dir)
 
-            main_cmd = '( {0} ) 2>> stderror.err &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
+            main_cmd = '( {0} ) 2>> log/stderror.err &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
             print_command(filename, main_cmd)
 
         else:
@@ -693,7 +703,7 @@ def genbash(
                 getmodel_cmd = _get_getmodel_cmd(**getmodel_args)
 
                 main_cmd = 'eve {0} {1} | {2} > {3}fifo/gul_P{0} '.format( process_id, max_process_id, getmodel_cmd, fifo_queue_dir)
-                main_cmd = '( {0} ) 2>> stderror.err &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
+                main_cmd = '( {0} ) 2>> log/stderror.err &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
                 print_command(filename, main_cmd)
 
             if il_output and 'il_summaries' in analysis_settings:
@@ -712,7 +722,7 @@ def genbash(
                         process_id, max_process_id, getmodel_cmd,
                         alloc_rule,
                         fifo_queue_dir)
-                main_cmd = '( {0} ) 2>> stderror.err &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
+                main_cmd = '( {0} ) 2>> log/stderror.err &'.format(main_cmd) if stderr_abort else '{0} &'.format(main_cmd) 
                 print_command(filename, main_cmd)
 
 
@@ -769,7 +779,7 @@ def genbash(
         remove_workfolders(RUNTYPE_INSURED_LOSS, analysis_settings, filename)
 
     if stderr_abort:
-        print_command(filename, '# Stopping stderr listner')
+        print_command(filename, '# Stop ktools watcher')
         print_command(filename, 'kill -9 $pid0')
 
     # If fifo dir is in /tmp/*/ then clean up

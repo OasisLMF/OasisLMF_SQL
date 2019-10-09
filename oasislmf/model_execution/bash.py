@@ -574,7 +574,7 @@ def genbash(
         print_command(filename, 'SCRIPT=$(readlink -f "$0") && cd $(dirname "$SCRIPT")')
         print_command(filename, '')
         print_command(filename, 'error_handler(){')
-        print_command(filename, "    echo 'Run Error - terminating'")
+        print_command(filename, "    echo 'Run Error - terminating, see the log dir for details'")
         print_command(filename, '    proc_group_id=$(ps -p $$ -o pgid --no-headers)')
         print_command(filename, '    pgrep -a --pgroup $proc_group_id >> log/killout.txt')
         print_command(filename, '    pkill -9 --pgroup $proc_group_id')

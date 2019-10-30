@@ -275,7 +275,7 @@ setup(
     exclude_package_data={
         '': ['__pycache__', '*.py[co]'],
     },
-    scripts=['bin/oasislmf', 'bin/ktools_monitor'],
+    scripts=['bin/oasislmf', 'bin/ktools_monitor.sh'],
     license='BSD 3-Clause',
     description='Core loss modelling framework.',
     long_description=readme,

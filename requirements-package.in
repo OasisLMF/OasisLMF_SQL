@@ -14,7 +14,7 @@ pyodbc
 python-interface
 pytz
 requests>=2.20.0
-rtree>=0.8.3
+rtree==0.8.3
 requests-toolbelt
 shapely>=1.6.4.post1
 shutilwhich

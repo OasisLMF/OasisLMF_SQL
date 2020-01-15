@@ -7,6 +7,7 @@ chainmap
 future
 jsonpickle
 lxml>=4.1.1
+numpy==1.14.0 
 pandas>=0.22.0
 pathlib2
 pyodbc

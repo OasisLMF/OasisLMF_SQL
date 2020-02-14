@@ -619,10 +619,16 @@ def genbash(
         create_workfolders(RUNTYPE_GROUNDUP_LOSS, analysis_settings, filename)
 
     if il_output:
+        if not gul_output:
+            do_gul_make_fifo(analysis_settings, max_process_id, filename, fifo_queue_dir)
         do_il_make_fifo(analysis_settings, max_process_id, filename, fifo_queue_dir)
         create_workfolders(RUNTYPE_INSURED_LOSS, analysis_settings, filename)
 
     if ri_output:
+        if not gul_output:
+            do_gul_make_fifo(analysis_settings, max_process_id, filename, fifo_queue_dir)
+        if not il_output:
+            do_il_make_fifo(analysis_settings, max_process_id, filename, fifo_queue_dir)
         do_ri_make_fifo(analysis_settings, max_process_id, filename, fifo_queue_dir)
         create_workfolders(RUNTYPE_REINSURANCE_LOSS, analysis_settings, filename)
         print_command(filename, '')

@@ -270,7 +270,7 @@ def do_summarycalcs(
 
     summarycalc_switch = '-f'
     if runtype == RUNTYPE_GROUNDUP_LOSS:
-        if gul_alloc_rule:
+        if gul_alloc_rule == 0 or gul_alloc_rule == 1:
             # Accept item stream only
             summarycalc_switch = '-i'
         else:

@@ -759,7 +759,7 @@ def genbash(
 
     use_random_number_file = False
     stderr_guard = stderr_guard
-    gul_item_stream = (gul_alloc_rule and isinstance(gul_alloc_rule, int))
+    gul_item_stream = True if gul_alloc_rule==0 else (gul_alloc_rule and isinstance(gul_alloc_rule, int))
     full_correlation = False
     gul_output = False
     il_output = False

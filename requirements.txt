@@ -5,64 +5,68 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 alabaster==0.7.10         # via sphinx
-anytree==2.4.3
-argparsetree==0.0.5
+anytree==2.4.3            # via -r ./requirements-package.in, -r requirements.in
+argparsetree==0.0.5       # via -r ./requirements-package.in
 attrs==17.4.0             # via hypothesis, pytest
 babel==2.5.3              # via sphinx
-backports.tempfile==1.0
-backports.weakref==1.0.post1
-billiard==3.5.0.4
+backports.tempfile==1.0   # via -r ./requirements-package.in, -r requirements.in
+backports.weakref==1.0.post1  # via -r ./requirements-package.in, -r requirements.in, backports.tempfile
+billiard==3.5.0.4         # via -r ./requirements-package.in
 certifi==2017.11.5        # via requests
-chainmap==1.0.2
+chainmap==1.0.2           # via -r ./requirements-package.in
 chardet==3.0.4            # via requests
 click==6.7                # via pip-tools
-configparser==3.5.0
+configparser==3.5.0       # via -r requirements.in, flake8
 cookies==2.2.1            # via responses
-coverage==4.4.2
-discover==0.4.0
+coverage==4.4.2           # via -r requirements.in, hypothesis, pytest-cov
+discover==0.4.0           # via -r requirements.in
 docutils==0.14            # via sphinx
+enum34==1.1.10            # via flake8, hypothesis
 first==2.0.1              # via pip-tools
-flake8==3.5.0
-freezegun==0.3.9
-future==0.16.0
-hypothesis==3.44.16
+flake8==3.5.0             # via -r requirements.in
+freezegun==0.3.9          # via -r requirements.in
+funcsigs==1.0.2           # via mock, pytest, python-interface
+future==0.16.0            # via -r ./requirements-package.in, -r requirements.in
+hypothesis==3.44.16       # via -r requirements.in
 idna==2.6                 # via requests
 imagesize==0.7.1          # via sphinx
 jinja2==2.10              # via sphinx
-jsonpickle==0.9.5
-lxml==4.1.1
+jsonpickle==0.9.5         # via -r ./requirements-package.in
+lxml==4.6.2               # via -r ./requirements-package.in
 markupsafe==1.0           # via jinja2
 mccabe==0.6.1             # via flake8
-mock==2.0.0
+mock==2.0.0               # via -r requirements.in, responses
 numpy==1.14.0             # via pandas
-pandas==0.22.0
-parameterized==0.6.1
-pathlib2==2.3.0
+pandas==0.22.0            # via -r ./requirements-package.in
+parameterized==0.6.1      # via -r requirements.in
+pathlib2==2.3.0           # via -r ./requirements-package.in
 pbr==3.1.1                # via mock
-pip-tools==2.0.2
+pip-tools==2.0.2          # via -r requirements.in
 pluggy==0.6.0             # via pytest, tox
 py==1.5.2                 # via pytest, tox
 pycodestyle==2.3.1        # via flake8
 pyflakes==1.6.0           # via flake8
 pygments==2.2.0           # via sphinx
-pyodbc==4.0.21
-pytest-cov==2.5.1
-pytest-ignore-flaky==0.1.1
-pytest==3.3.2
+pyodbc==4.0.27            # via -r ./requirements-package.in
+pytest-cov==2.5.1         # via -r requirements.in
+pytest-ignore-flaky==0.1.1  # via -r requirements.in
+pytest==3.3.2             # via -r requirements.in, pytest-cov, pytest-ignore-flaky
 python-dateutil==2.6.1    # via freezegun, pandas
-python-interface==1.4.0
-pytz==2017.3
-requests-toolbelt==0.8.0
-requests==2.20.0
-responses==0.8.1
-rtree==0.8.3
-shapely==1.6.4.post1
-shutilwhich==1.1.0
-six==1.11.0
+python-interface==1.4.0   # via -r ./requirements-package.in
+pytz==2017.3              # via -r ./requirements-package.in, babel, pandas
+requests-toolbelt==0.8.0  # via -r ./requirements-package.in
+requests==2.20.0          # via -r ./requirements-package.in, requests-toolbelt, responses, sphinx
+responses==0.8.1          # via -r requirements.in
+rtree==0.8.3              # via -r ./requirements-package.in
+scandir==1.10.0           # via pathlib2
+shapely==1.6.4.post1      # via -r ./requirements-package.in
+shutilwhich==1.1.0        # via -r ./requirements-package.in
+six==1.11.0               # via -r ./requirements-package.in, anytree, freezegun, mock, pathlib2, pip-tools, pytest, python-dateutil, python-interface, responses, sphinx, tox
 snowballstemmer==1.2.1    # via sphinx
-sphinx==1.6.7
+sphinx==1.6.7             # via -r requirements.in
 sphinxcontrib-websupport==1.0.1  # via sphinx
-tabulate==0.8.2
-tox==2.9.1
+tabulate==0.8.2           # via -r ./requirements-package.in, -r requirements.in
+tox==2.9.1                # via -r requirements.in
+typing==3.7.4.3           # via python-interface, sphinx
 urllib3==1.23             # via requests
 virtualenv==15.1.0        # via tox
